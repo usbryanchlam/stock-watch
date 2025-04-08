@@ -5,6 +5,7 @@ import dev.bryanlam.stockwatch.security.JwtAuthenticationFilter;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -24,6 +25,9 @@ public class SecurityConfig {
     
     private GoogleOAuth2SuccessHandler oAuth2SuccessHandler;
 
+    @Value("${app.cors.allowedOrigins}")
+    private String allowedOrigins;
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
@@ -38,8 +42,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-            // TODO
-            "http://localhost:5173"  // Change it to production link later
+            allowedOrigins
         ));
         configuration.setAllowedMethods(Arrays.asList(
             "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"

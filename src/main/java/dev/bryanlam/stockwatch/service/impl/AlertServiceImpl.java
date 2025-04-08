@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import dev.bryanlam.stockwatch.dto.StockAlertDTO;
 import dev.bryanlam.stockwatch.dto.StockDataDTO;
@@ -77,6 +78,12 @@ public class AlertServiceImpl implements AlertService {
         }
         
         stockAlertRepository.delete(alert);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(String userId) {
+        stockAlertRepository.deleteByUserId(userId);
     }
 
     @Override

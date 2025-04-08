@@ -13,4 +13,5 @@ public interface StockAlertRepository extends MongoRepository<StockAlert, String
     List<StockAlert> findByStockSymbolAndIsActiveTrue(String stockSymbol);
     List<StockAlert> findByIsActiveTrueAndIsTriggeredFalse();
     Optional<StockAlert> findByUserIdAndStockSymbol(String userId, String stockSymbol);
+    void deleteByUserId(String userId);
 }

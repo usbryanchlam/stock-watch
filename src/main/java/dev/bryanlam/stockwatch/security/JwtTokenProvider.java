@@ -2,9 +2,11 @@ package dev.bryanlam.stockwatch.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -81,5 +83,25 @@ public class JwtTokenProvider {
     
     public long getExpirationTime() {
         return jwtExpirationInMs;
+    }
+
+    public ResponseCookie createJWTCookie(String token) {
+        return ResponseCookie.from("jwt", token)
+        .httpOnly(true)
+        // .secure(true)                // TODO: Set https for production
+        .path("/")
+        .maxAge(jwtExpirationInMs / 1000)
+        .sameSite("Lax")       // Use Lax for redirects to external domains
+        .build();
+    }
+
+    public ResponseCookie invalidateJWTCookie() {
+        return ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                // .secure(true)        // TODO: Set https for production
+                .path("/")
+                .maxAge(0)  // Expire immediately
+                .sameSite("Lax")
+                .build();
     }
 }

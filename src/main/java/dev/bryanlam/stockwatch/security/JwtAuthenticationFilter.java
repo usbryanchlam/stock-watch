@@ -2,6 +2,7 @@ package dev.bryanlam.stockwatch.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -17,6 +18,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import dev.bryanlam.stockwatch.service.impl.UserServiceImpl;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Optional;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
@@ -30,7 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            String jwt = getJwtFromRequest(request);
+            // Extract JWT from cookie
+            String jwt = extractJwtFromCookies(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 String email = tokenProvider.getEmailFromJWT(jwt);
@@ -49,10 +53,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String getJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+    private String extractJwtFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            Optional<Cookie> jwtCookie = Arrays.stream(cookies)
+                    .filter(cookie -> "jwt".equals(cookie.getName()))
+                    .findFirst();
+            
+            if (jwtCookie.isPresent()) {
+                return jwtCookie.get().getValue();
+            }
         }
         return null;
     }

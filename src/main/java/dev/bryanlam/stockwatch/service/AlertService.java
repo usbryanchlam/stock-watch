@@ -15,6 +15,8 @@ public interface AlertService {
     public List<StockAlertDTO> getUserAlerts(String userId);
     
     public void deleteAlert(String alertId, String userId);
+
+    public void deleteByUserId(String userId);
     
     public void deactivateAlert(String alertId, String userId);
     
