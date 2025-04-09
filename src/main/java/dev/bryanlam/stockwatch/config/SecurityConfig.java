@@ -1,5 +1,6 @@
 package dev.bryanlam.stockwatch.config;
 
+import dev.bryanlam.stockwatch.security.CsrfDoubleSubmitFilter;
 import dev.bryanlam.stockwatch.security.JwtAuthenticationFilter;
 
 import java.util.Arrays;
@@ -31,6 +32,11 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
+    }
+
+    @Bean
+    public CsrfDoubleSubmitFilter csrfDoubleSubmitFilter() {
+        return new CsrfDoubleSubmitFilter();
     }
 
     @Autowired
@@ -73,6 +79,8 @@ public class SecurityConfig {
 
         // Add JWT filter
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        // Add CSRF Double Submit filter
+        http.addFilterAfter(csrfDoubleSubmitFilter(), JwtAuthenticationFilter.class);
 
         return http.build();
     }

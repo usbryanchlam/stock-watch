@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import dev.bryanlam.stockwatch.dto.ApiResponse;
+import dev.bryanlam.stockwatch.security.CsrfTokenProvider;
 import dev.bryanlam.stockwatch.security.JwtTokenProvider;
 
 @RestController
@@ -22,6 +23,9 @@ public class AuthController {
 
     @Autowired
     private JwtTokenProvider tokenProvider;
+
+    @Autowired
+    private CsrfTokenProvider csrfProvider;
 
     @Value("${app.client.callbackuri}")
     private String clientCallbackURI;
@@ -34,9 +38,14 @@ public class AuthController {
 
         // Create JWT cookie
         ResponseCookie jwtCookie = tokenProvider.createJWTCookie(token);
+
+        // Create CSRF cookie
+        ResponseCookie csrfCookie = csrfProvider.createCsrfTokenAndCookie();
         
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+        headers.add(HttpHeaders.SET_COOKIE, csrfCookie.toString());
+
         headers.add(HttpHeaders.LOCATION, redirectUrl);
         
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
@@ -45,10 +54,13 @@ public class AuthController {
     @PostMapping("/signout")
     public ResponseEntity<ApiResponse<Void>> signout() {
         ResponseCookie jwtCookie = tokenProvider.invalidateJWTCookie();
+        ResponseCookie csrfCookie = csrfProvider.invalidateCsrfTokenCookie();
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+        headers.add(HttpHeaders.SET_COOKIE, csrfCookie.toString());
 
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body(ApiResponse.success(null, "Signed out successfully"));
+
+        return ResponseEntity.ok().headers(headers).body(ApiResponse.success(null, "Signed out successfully"));
     }
 }

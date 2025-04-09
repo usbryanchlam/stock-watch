@@ -21,6 +21,7 @@ import dev.bryanlam.stockwatch.dto.StockAlertDTO;
 import dev.bryanlam.stockwatch.dto.StockDataDTO;
 import dev.bryanlam.stockwatch.dto.UserDTO;
 import dev.bryanlam.stockwatch.exception.ResourceNotFoundException;
+import dev.bryanlam.stockwatch.security.CsrfTokenProvider;
 import dev.bryanlam.stockwatch.security.JwtTokenProvider;
 import dev.bryanlam.stockwatch.service.impl.AlertServiceImpl;
 import dev.bryanlam.stockwatch.service.impl.StockServiceImpl;
@@ -47,12 +48,16 @@ public class ResourceController {
 
     private JwtTokenProvider tokenProvider;
 
+    private CsrfTokenProvider csrfProvider;
+
     @Autowired
-    public ResourceController(UserServiceImpl userService, StockServiceImpl stockService, AlertServiceImpl alertService, JwtTokenProvider tokenProvider) {
+    public ResourceController(UserServiceImpl userService, StockServiceImpl stockService, 
+        AlertServiceImpl alertService, JwtTokenProvider tokenProvider, CsrfTokenProvider csrfProvider) {
         this.userService = userService;
         this.stockService = stockService;
         this.alertService = alertService;
         this.tokenProvider = tokenProvider;
+        this.csrfProvider = csrfProvider;
     }
 
     @GetMapping("/users/me")
@@ -77,8 +82,13 @@ public class ResourceController {
             alertService.deleteByUserId(userDto.getId());
             userService.delete(userDto);
             ResponseCookie jwtCookie = tokenProvider.invalidateJWTCookie();
+            ResponseCookie csrfCookie = csrfProvider.invalidateCsrfTokenCookie();
 
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body(ApiResponse.success(null));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+            headers.add(HttpHeaders.SET_COOKIE, csrfCookie.toString());
+
+            return ResponseEntity.ok().headers(headers).body(ApiResponse.success(null));
         }
         else {
             throw new ResourceNotFoundException("Not authorized to delete user!");

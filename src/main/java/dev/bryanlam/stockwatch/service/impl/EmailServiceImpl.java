@@ -1,6 +1,7 @@
 package dev.bryanlam.stockwatch.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,9 @@ public class EmailServiceImpl implements EmailService {
     private JavaMailSender mailSender;
     
     private UserRepository userRepository;
+
+    @Value("${spring.mail.username}")
+    private String senderEmail;
     
     @Autowired
     public EmailServiceImpl(JavaMailSender mailSender, UserRepository userRepository) {
@@ -53,6 +57,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(content, true); // Set to true for HTML content
+            helper.setFrom(senderEmail);
             
             mailSender.send(message);
 
